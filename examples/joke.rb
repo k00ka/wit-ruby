@@ -42,7 +42,7 @@ actions = {
   :error => -> (session_id, context, error) {
     p error.message
   },
-  :'select-joke' => -> (session_id, context) {
+  :'select-joke' => -> (session_id, context, entities) {
     context['joke'] = all_jokes[context['cat'] || 'default'].sample
     return context
   },

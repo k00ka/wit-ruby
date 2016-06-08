@@ -32,16 +32,17 @@ end
 def validate_actions(actions)
   learn_more = 'Learn more at https://wit.ai/docs/quickstart'
   Wit.logger.warn 'The second parameter should be a Hash' unless actions.is_a? Hash
-  [:say, :merge, :error].each do |action|
+  [:say, :error].each do |action|
     Wit.logger.warn "The #{action} action is missing. #{learn_more}" unless actions.has_key? action
   end
   actions.each_pair do |k, v|
     Wit.logger.warn "The '#{k}' action name should be a symbol" unless k.is_a? Symbol
     Wit.logger.warn "The '#{k}' action should be a lambda function" unless v.respond_to? :call and v.lambda?
     Wit.logger.warn "The \'say\' action should take 3 arguments: session_id, context, msg. #{learn_more}" if k == :say and v.arity != 3
-    Wit.logger.warn "The \'merge\' action should take 4 arguments: session_id, context, entities, msg. #{learn_more}" if k == :merge and v.arity != 4
+    # DEPRECATED
+    # Wit.logger.warn "The \'merge\' action should take 4 arguments: session_id, context, entities, msg. #{learn_more}" if k == :merge and v.arity != 4
     Wit.logger.warn "The \'error\' action should take 3 arguments: session_id, context, error. #{learn_more}" if k == :error and v.arity != 3
-    Wit.logger.warn "The '#{k}' action should take 2 arguments: session_id, context. #{learn_more}" if k != :say and k != :merge and k != :error and v.arity != 2
+    Wit.logger.warn "The '#{k}' action should take 3 arguments: session_id, context, entities. #{learn_more}" if k != :say and k != :merge and k != :error and v.arity != 3
   end
   return actions
 end
@@ -101,7 +102,7 @@ class Wit
       msg = rst['msg']
       logger.info "Executing say with: #{msg}"
       @actions[:say].call session_id, context.clone, msg
-    elsif type == 'merge'
+    elsif type == 'merge' # DEPRECATED
       raise WitException.new 'unknown action: merge' unless @actions.has_key? :merge
       logger.info 'Executing merge'
       context = @actions[:merge].call session_id, context.clone, rst['entities'], user_message
@@ -113,7 +114,7 @@ class Wit
       action = rst['action'].to_sym
       raise WitException.new "unknown action: #{action}" unless @actions.has_key? action
       logger.info "Executing action #{action}"
-      context = @actions[action].call session_id, context.clone
+      context = @actions[action].call session_id, context.clone, rst['entities']
       if context.nil?
         logger.warn 'missing context - did you forget to return it?'
         context = {}

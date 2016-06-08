@@ -28,7 +28,7 @@ actions = {
   :error => -> (session_id, context, error) {
     p error.message
   },
-  :'fetch-weather' => -> (session_id, context) {
+  :'fetch-weather' => -> (session_id, context, entities) {
     context['forecast'] = 'sunny'
     return context
   },
