@@ -1,13 +1,15 @@
 require 'wit'
 
+if ARGV.length == 0
+  puts("usage: #{$0} <wit-access-token>")
+  exit 1
+end
+
+access_token = ARGV[0]
+ARGV.shift
+
 # Quickstart example
 # See https://wit.ai/l5t/Quickstart
-
-access_token = ARGV.shift
-unless access_token
-  puts 'usage: ruby examples/quickstart.rb <access-token>'
-  exit
-end
 
 def first_entity_value(entities, entity)
   return nil unless entities.has_key? entity
@@ -17,8 +19,8 @@ def first_entity_value(entities, entity)
 end
 
 actions = {
-  :say => -> (session_id, context, msg) {
-    p msg
+  send: -> (request, response) {
+    puts("sending... #{response['text']}")
   },
   :merge => -> (session_id, context, entities, msg) {
     loc = first_entity_value entities, 'location'
@@ -33,5 +35,6 @@ actions = {
     return context
   },
 }
-client = Wit.new access_token, actions
+
+client = Wit.new(access_token: access_token, actions: actions)
 client.interactive
