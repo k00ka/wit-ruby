@@ -43,10 +43,18 @@ def validate_actions(actions)
     end
   end
   actions.each_pair do |k, v|
-    Wit.logger.warn "The '#{k}' action name should be a symbol" unless k.is_a? Symbol
-    Wit.logger.warn "The '#{k}' action should be a lambda function" unless v.respond_to?(:call) && v.lambda?
-    Wit.logger.warn "The \'send\' action should take 2 arguments: request and response. #{LEARN_MORE}" if k == :send && v.arity != 2
-    Wit.logger.warn "The '#{k}' action should take 1 argument: request. #{LEARN_MORE}" if k != :send && v.arity != 1
+    if !k.is_a?(Symbol)
+      Wit.logger.warn "The '#{k}' action name should be a symbol"
+    end
+    if !(v.respond_to?(:call) && v.lambda?)
+      Wit.logger.warn "The '#{k}' action should be a lambda function"
+    end
+    if k == :send && v.arity != 2
+      Wit.logger.warn "The \'send\' action should take 2 arguments: request and response. #{LEARN_MORE}"
+    end
+    if k != :send && v.arity != 1
+      Wit.logger.warn "The '#{k}' action should take 1 argument: request. #{LEARN_MORE}"
+    end
   end
   return actions
 end
@@ -163,7 +171,9 @@ class Wit
     while true
       print '> '
       msg = gets.strip
-      next if msg == ''
+      if msg == ''
+        next
+      end
 
       begin
         context = run_actions(session_id, msg, context, max_steps)
