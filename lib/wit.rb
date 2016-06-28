@@ -10,7 +10,7 @@ LEARN_MORE = 'Learn more at https://wit.ai/docs/quickstart'
 class WitException < Exception
 end
 
-def req(access_token, meth_class, path, params={}, payload={})
+def req(logger, access_token, meth_class, path, params={}, payload={})
   uri = URI(WIT_API_HOST + path)
   uri.query = URI.encode_www_form(params)
 
@@ -36,24 +36,24 @@ def req(access_token, meth_class, path, params={}, payload={})
   end
 end
 
-def validate_actions(actions)
+def validate_actions(logger, actions)
   [:send].each do |action|
     if !actions.has_key?(action)
-      Wit.logger.warn "The #{action} action is missing. #{LEARN_MORE}"
+      logger.warn "The #{action} action is missing. #{LEARN_MORE}"
     end
   end
   actions.each_pair do |k, v|
     if !k.is_a?(Symbol)
-      Wit.logger.warn "The '#{k}' action name should be a symbol"
+      logger.warn "The '#{k}' action name should be a symbol"
     end
     if !(v.respond_to?(:call) && v.lambda?)
-      Wit.logger.warn "The '#{k}' action should be a lambda function"
+      logger.warn "The '#{k}' action should be a lambda function"
     end
     if k == :send && v.arity != 2
-      Wit.logger.warn "The \'send\' action should take 2 arguments: request and response. #{LEARN_MORE}"
+      logger.warn "The \'send\' action should take 2 arguments: request and response. #{LEARN_MORE}"
     end
     if k != :send && v.arity != 1
-      Wit.logger.warn "The '#{k}' action should take 1 argument: request. #{LEARN_MORE}"
+      logger.warn "The '#{k}' action should take 1 argument: request. #{LEARN_MORE}"
     end
   end
   return actions
@@ -63,12 +63,12 @@ class Wit
   def initialize(opts = {})
     @access_token = opts[:access_token]
 
-    if opts[:actions]
-      @actions = validate_actions(opts[:actions])
-    end
-
     if opts[:logger]
       @logger = opts[:logger]
+    end
+
+    if opts[:actions]
+      @actions = validate_actions(logger, opts[:actions])
     end
   end
 
@@ -83,7 +83,7 @@ class Wit
   def message(msg)
     params = {}
     params[:q] = msg unless msg.nil?
-    res = req @access_token, Net::HTTP::Get, '/message', params
+    res = req(logger, @access_token, Net::HTTP::Get, '/message', params)
     return res
   end
 
@@ -94,7 +94,7 @@ class Wit
     params = {}
     params[:q] = msg unless msg.nil?
     params[:session_id] = session_id
-    res = req(@access_token, Net::HTTP::Post, '/converse', params, context)
+    res = req(logger, @access_token, Net::HTTP::Post, '/converse', params, context)
     return res
   end
 

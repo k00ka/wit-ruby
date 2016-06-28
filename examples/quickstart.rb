@@ -9,7 +9,7 @@ access_token = ARGV[0]
 ARGV.shift
 
 # Quickstart example
-# See https://wit.ai/l5t/Quickstart
+# See https://wit.ai/ar7hur/Quickstart
 
 def first_entity_value(entities, entity)
   return nil unless entities.has_key? entity
@@ -22,16 +22,18 @@ actions = {
   send: -> (request, response) {
     puts("sending... #{response['text']}")
   },
-  :merge => -> (session_id, context, entities, msg) {
-    loc = first_entity_value entities, 'location'
-    context['loc'] = loc unless loc.nil?
-    return context
-  },
-  :error => -> (session_id, context, error) {
-    p error.message
-  },
-  :'fetch-weather' => -> (session_id, context) {
-    context['forecast'] = 'sunny'
+  getForecast: -> (request) {
+    context = request['context']
+    entities = request['entities']
+
+    loc = first_entity_value(entities, 'location')
+    if loc
+        context['forecast'] = 'sunny'
+    else
+        context['missingLocation'] = true
+        context.delete('forecast')
+    end
+
     return context
   },
 }
