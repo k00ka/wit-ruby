@@ -37,7 +37,7 @@ def validate_actions(actions)
   end
   actions.each_pair do |k, v|
     Wit.logger.warn "The '#{k}' action name should be a symbol" unless k.is_a? Symbol
-    Wit.logger.warn "The '#{k}' action should be a lambda function" unless v.respond_to? :call and v.lambda?
+    Wit.logger.warn "The '#{k}' action should be something that implements #call" unless v.respond_to? :call
     Wit.logger.warn "The \'say\' action should take 3 arguments: session_id, context, msg. #{learn_more}" if k == :say and v.arity != 3
     Wit.logger.warn "The \'merge\' action should take 4 arguments: session_id, context, entities, msg. #{learn_more}" if k == :merge and v.arity != 4
     Wit.logger.warn "The \'error\' action should take 3 arguments: session_id, context, error. #{learn_more}" if k == :error and v.arity != 3
