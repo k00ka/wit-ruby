@@ -47,8 +47,8 @@ def validate_actions(logger, actions)
     if !k.is_a?(Symbol)
       logger.warn "The '#{k}' action name should be a symbol"
     end
-    if !(v.respond_to?(:call) && v.lambda?)
-      logger.warn "The '#{k}' action should be a lambda function"
+    unless v.respond_to?(:call)
+      logger.warn "The '#{k}' action should be something that implements #call"
     end
     if k == :send && v.arity != 2
       logger.warn "The \'send\' action should take 2 arguments: request and response. #{LEARN_MORE}"
