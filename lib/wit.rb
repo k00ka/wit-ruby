@@ -53,14 +53,15 @@ class Wit
     def logger
       @logger ||= begin
         $stdout.sync = true
-        Logger.new(STDOUT)
+        Logger.new(STDERR)
       end.tap { |logger| logger.level = Logger::INFO }
     end
   end
 
-  def initialize(access_token, actions)
+  def initialize(access_token, actions, logger)
     @access_token = access_token
     @actions = validate_actions actions
+    @logger = logger
   end
 
   def logger
